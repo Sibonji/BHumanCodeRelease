@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>booster_k1_whitelines_detector_zed2i</name>
+  <version>0.1.0</version>
+  <description>ROS 2 node for white lines and field plane detection using ZED2i and OpenCV.</description>
+  <maintainer email="user@example.com">Your Name</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>ament_cmake</exec_depend>
+  <exec_depend>rclcpp</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>image_transport</exec_depend>
+  <exec_depend>OpenCV</exec_depend>
+  <exec_depend>zed_interfaces</exec_depend>
+  <exec_depend>zed_components</exec_depend>
+  <depend>starkit_localization_msgs</depend>
+  
+  <export>
+      <build_type>ament_cmake</build_type>
+  </export>     
+</package> 
