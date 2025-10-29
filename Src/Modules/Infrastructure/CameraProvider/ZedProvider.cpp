@@ -459,7 +459,7 @@ void ZedProvider::waitForFrameData2()
   //   }
   // }
   cv::Mat line_size_frame = line_size_provider.processFrame(input_frame);
-  yuvFrameData = line_size_frame;
+  yuvFrameData = (const uint8_t*)line_size_frame.data;
 #endif
 }
 
