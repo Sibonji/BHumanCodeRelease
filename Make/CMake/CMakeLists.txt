@@ -381,8 +381,7 @@ endif()
 if(BUILD_BOOSTER)
   # TF2 LinearMath from ROS geometry2
   add_library(tf2_linmath INTERFACE IMPORTED)
-  set_target_properties(tf2_linmath PROPERTIES
-      INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/tf2"
+  set_target_properties(tf2_linmath PROPERTIES NTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/tf2"
   )
 
   # Create namespace target following your pattern

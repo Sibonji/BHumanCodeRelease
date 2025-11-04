@@ -9,7 +9,7 @@
 #include "Perception.h"
 #include "Modules/Infrastructure/CameraProvider/CameraProvider.h"
 #include "Modules/Infrastructure/CameraProvider/OrbbecProvider.h"
-#include "Modules/Infrastructure/CameraProvider/RealSenseProvider.h"
+#include "Modules/Infrastructure/CameraProvider/ZedProvider.h"
 #include "Modules/Infrastructure/LogDataProvider/LogDataProvider.h"
 
 REGISTER_EXECUTION_UNIT(Perception)
