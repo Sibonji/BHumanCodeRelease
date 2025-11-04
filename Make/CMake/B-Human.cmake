@@ -118,6 +118,24 @@ else()
     target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::libjpeg::libjpeg)
     target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::CompiledNN::ONNX)
     target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::realsense2::realsense2)
+    # zed
+    target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::zed::zed)
+    # tf2
+    target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE tf2::LinearMath)
+    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::OpenCV::OpenCV)
+
+    # cuda
+    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::runtime)
+    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::driver)
+    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::blas)
+    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::blas_lt)
+    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::dnn)
+    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::nppc)
+    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::nppial)
+    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::nppicc)
+
+    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::toolkit)
+
     target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::Booster::SDK)
     target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::FastCDR::FastCDR)
     target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::FastRTPS::FastRTPS)
