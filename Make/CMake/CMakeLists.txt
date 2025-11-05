@@ -27,9 +27,21 @@ cmake_minimum_required(VERSION 3.17)
 # Export CMAKE_EXPORT_COMPILE_COMMANDS to build the compile_commands.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# # Enable CUDA for Booster builds
 # if(BUILD_BOOSTER)
 #   enable_language(CUDA)
+#   find_package(CUDAToolkit REQUIRED)
 # endif()
+
+# project(B-Human LANGUAGES CXX)
+# if(BUILD_BOOSTER)
+#   # Add CUDA to project languages when building for Booster
+#   set(project_languages CXX CUDA)
+# else()
+#   set(project_languages CXX)
+# endif()
+# project(B-Human LANGUAGES ${project_languages})
+
 
 if(BUILD_NAO)
   set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../CMake/NaoToolchain.cmake")
@@ -41,12 +53,14 @@ if(NOT BUILD_NAO AND CMAKE_HOST_UNIX)
   set(CMAKE_CXX_COMPILER clang++)
 endif()
 
-project(B-Human LANGUAGES CXX)
+project(B-Human LANGUAGES CXX) # todo
+
 # if(BUILD_BOOSTER)
 #   project(B-Human LANGUAGES CXX CUDA)
 # else()
 #   project(B-Human LANGUAGES CXX)
 # endif()
+
 
 if(("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL arm64 OR "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL aarch64) AND NOT ROSETTA)
   set(X86 false)
@@ -147,6 +161,18 @@ set(CMAKE_EXE_LINKER_FLAGS_RELEASE "")
 set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "")
 set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "")
 set(CMAKE_STATIC_LINKER_FLAGS_RELEASE "")
+
+# cuda
+# if(BUILD_BOOSTER)
+#   # Set CUDA architecture for Jetson devices (adjust based on your specific Jetson)
+#   set(CMAKE_CUDA_ARCHITECTURES "72")  # For Jetson Xavier NX/Orin
+#   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -std=c++17")
+# endif()
+
+find_package(CUDAToolkit REQUIRED)
+# if(BUILD_BOOSTER)
+#   find_package(CUDAToolkit REQUIRED)
+# endif()
 
 if(MSVC)
   add_compile_options(/W3 /GF /GS- /MP /EHsc /permissive- /Zc:preprocessor /Zc:__cplusplus /wd5105 /w34100 /w34189)
@@ -367,6 +393,11 @@ if(BUILD_BOOSTER)
   set_target_properties(Booster::zed::zed PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/zed/include")
   set_target_properties(Booster::zed::zed PROPERTIES INTERFACE_LINK_LIBRARIES "${BHUMAN_PREFIX}/Util/zed/lib/libsl_zed.so")
   
+  
+  # set_target_properties(tf2_linmath PROPERTIES 
+  #     INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/tf2/LinearMath"
+  # )
+
   set_target_properties(Booster::Booster::SDK PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/BoosterRoboticsSDK/include")
   set_target_properties(Booster::FastCDR::FastCDR PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/BoosterRoboticsSDK/include")
   set_target_properties(Booster::FastRTPS::FastRTPS PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/BoosterRoboticsSDK/include")
@@ -377,21 +408,62 @@ if(BUILD_BOOSTER)
   set_target_properties(Booster::FooNathan::Memory PROPERTIES IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/BoosterRoboticsSDK/lib/LinuxArm64/libfoonathan_memory-0.7.3.a")
 endif()
 
-#add tf2 linearMath
+# # add cuda
+# if(BUILD_BOOSTER)
+#   # Find CUDA toolkit
+#   find_package(CUDAToolkit REQUIRED)
+  
+#   # Create a collective CUDA toolkit target
+#   add_library(Booster::cuda::toolkit INTERFACE IMPORTED)
+#   set_target_properties(Booster::cuda::toolkit PROPERTIES
+#       INTERFACE_LINK_LIBRARIES 
+#           "CUDA::cudart"
+#           "CUDA::cublas"
+#           "CUDA::cublasLt"
+#           "CUDA::cudnn"
+#           "CUDA::nppc"
+#           "CUDA::nppial"
+#           "CUDA::nppicc")
+  
+#   message(STATUS "CUDA Toolkit found: ${CUDAToolkit_VERSION}")
+#   message(STATUS "CUDA Include: ${CUDAToolkit_INCLUDE_DIRS}")
+#   message(STATUS "CUDA Libraries: ${CUDAToolkit_LIBRARY_DIR}")
+# endif()
+
+# #add tf2 linearMath
+# if(BUILD_BOOSTER)
+#   # TF2 LinearMath from ROS geometry2
+#   add_library(Booster::tf2::tf2 INTERFACE IMPORTED)
+#   set_target_properties(Booster::tf2::tf2 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/tf2/LinearMath")
+
+#   # Create namespace target following your pattern
+#   add_library(tf2::LinearMath INTERFACE IMPORTED)
+#   set_target_properties(tf2::LinearMath PROPERTIES 
+#       INTERFACE_LINK_LIBRARIES "Booster::tf2::tf2"
+#   )
+
+#   message(STATUS "TF2 LinearMath configured: ${BHUMAN_PREFIX}/Util/tf2")
+# endif()
+
+#add tf2 linearMath (header-only library)
 if(BUILD_BOOSTER)
-  # TF2 LinearMath from ROS geometry2
-  add_library(tf2_linmath INTERFACE IMPORTED)
-  set_target_properties(tf2_linmath PROPERTIES NTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/tf2"
-  )
-
-  # Create namespace target following your pattern
-  add_library(tf2::LinearMath INTERFACE IMPORTED)
-  set_target_properties(tf2::LinearMath PROPERTIES
-      INTERFACE_LINK_LIBRARIES "tf2_linmath"
-  )
-
-  message(STATUS "TF2 LinearMath configured: ${BHUMAN_PREFIX}/Util/tf2")
+  # Check if tf2 headers exist
+  if(EXISTS "${BHUMAN_PREFIX}/Util/tf2/include")
+    # Create interface library for header-only tf2 LinearMath
+    add_library(Booster::tf2_linmath INTERFACE IMPORTED)
+    set_target_properties(Booster::tf2_linmath PROPERTIES 
+        INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/tf2/include")
+    
+    # Create alias following CMake conventions
+    # add_library(tf2::LinearMath ALIAS Booster::tf2_linmath)
+    
+    message(STATUS "TF2 LinearMath (header-only) configured: ${BHUMAN_PREFIX}/Util/tf2/include")
+  else()
+    message(WARNING "TF2 LinearMath not found at ${BHUMAN_PREFIX}/Util/tf2/include")
+  endif()
 endif()
+
+
 # add cuda
 # if(BUILD_BOOSTER)
 #   # Add link directory
@@ -635,13 +707,19 @@ endif()
 # endif()
 
 # if(BUILD_BOOSTER)
+#   find_package(OpenCV QUIET)
 #   add_library(Booster::OpenCV::OpenCV INTERFACE IMPORTED)
 #   set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#       INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/opencv/include")
+#       INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/opencv4")
 #   set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
 #       INTERFACE_LINK_LIBRARIES "${BHUMAN_PREFIX}/Util/opencv/lib/LinuxArm64/libopencv_world.so")
 # endif()
 # ############ END OPENCV ############
+
+if(BUILD_BOOSTER)
+  set(OpenCV_DIR "/usr/lib/x86_64-linux-gnu/cmake/opencv4")
+  find_package(OpenCV REQUIRED)
+endif()
 
 if(BUILD_NAO)
   add_library(Nao::FFTW::FFTW STATIC IMPORTED)

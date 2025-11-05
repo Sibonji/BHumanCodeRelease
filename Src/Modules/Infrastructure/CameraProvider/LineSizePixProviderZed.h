@@ -2,8 +2,8 @@
 #define LINE_SIZE_PIX_PROVIDER_ZED_H
 
 #include <tf2/LinearMath/Transform.h>
-#include <sl/Camera.hpp>
 #include <opencv2/opencv.hpp>
+#include <sl/Camera.hpp>
 #include <chrono>
 #include <Eigen/Dense>
 

@@ -12,10 +12,7 @@
 #include "Platform/SystemCall.h"
 #include "Platform/Thread.h"
 #include "Platform/Time.h"
-// #ifdef TARGET_BOOSTER
-// #include <librealsense2/h/rs_pipeline.h>
-// #include <librealsense2/h/rs_frame.h>
-// #endif
+#include <iostream>
 
 MAKE_MODULE(ZedProvider);
 
@@ -47,26 +44,7 @@ const std::unordered_map<ZedProvider::Setting, ZedProvider::Setting> ZedProvider
   {ZedProvider::whiteBalance, ZedProvider::autoWhiteBalance}
 };
 
-#ifdef TARGET_BOOSTER
-const rs2_option ZedProvider::options[ZedProvider::numOfSettings] =
-{
-  RS2_OPTION_BACKLIGHT_COMPENSATION,
-  RS2_OPTION_BRIGHTNESS,
-  RS2_OPTION_CONTRAST,
-  RS2_OPTION_EXPOSURE,
-  RS2_OPTION_GAIN,
-  RS2_OPTION_GAMMA,
-  RS2_OPTION_HUE,
-  RS2_OPTION_SATURATION,
-  RS2_OPTION_SHARPNESS,
-  RS2_OPTION_WHITE_BALANCE,
-  RS2_OPTION_ENABLE_AUTO_EXPOSURE,
-  RS2_OPTION_ENABLE_AUTO_WHITE_BALANCE,
-  RS2_OPTION_FRAMES_QUEUE_SIZE,
-  RS2_OPTION_POWER_LINE_FREQUENCY,
-  RS2_OPTION_AUTO_EXPOSURE_PRIORITY
-};
-#endif
+// No RealSense options mapping is required for ZED
 
 void ZedProvider::Settings::read(In& stream)
 {
@@ -141,6 +119,7 @@ void ZedProvider::Settings::reg()
 
 ZedProvider::ZedProvider()
   : cameraInfo(CameraInfo::upper)
+  , PixProviderZed(zed)
 {
   theInstance = this;
   VERIFY(readCameraIntrinsics());
@@ -150,42 +129,7 @@ ZedProvider::ZedProvider()
   std::fill(appliedSettings.begin(), appliedSettings.end(), 20000);
 
 #ifdef TARGET_BOOSTER
-  // // Create a context object. This object owns the handles to all connected RealSense devices.
-  // context = rs2_create_context(RS2_API_VERSION, &e);
-  // VERIFY(ok());
-
-  // // Create a pipeline to configure, start and stop camera streaming
-  // pipeline = rs2_create_pipeline(context, &e);
-  // VERIFY(ok());
-
-  // // Create a config instance, used to specify hardware configuration
-  // config = rs2_create_config(&e);
-  // VERIFY(ok());
-  
-  // Open the camera
-  auto err = zed.open(init_params);
-  if (err != sl::ERROR_CODE::SUCCESS) {
-      std::cout << "Error " << err << ", exit program." << std::endl;
-      return -1;
-  }
-
-  // Manual exposure/gain test, works OK
-  bool manual_exposure = true;
-  if(manual_exposure) {
-      // Disable auto exposure first
-      zed.setCameraSettings(sl::VIDEO_SETTINGS::AEC_AGC, 0);  // 0 = manual, 1 = auto
-
-      // Set exposure value (range: 0–100 for ZED2 / ZED2i / ZED X)
-      int exposure_value = 15;
-      zed.setCameraSettings(sl::VIDEO_SETTINGS::EXPOSURE, exposure_value);    
-      int gain_value = 100;
-      zed.setCameraSettings(sl::VIDEO_SETTINGS::GAIN, gain_value);
-  }
-
-  // Enable positional tracking before starting spatial mapping
-  zed.enablePositionalTracking();
-
-   PixProviderZed(zed);
+  // ZED initialization is performed in startStream()
 #endif
 
   setupCamera();
@@ -324,142 +268,39 @@ void ZedProvider::setupCamera()
 void ZedProvider::startStream()
 {
 #ifdef TARGET_BOOSTER
-  // // Request a specific configuration
-  // rs2_config_enable_stream(config, RS2_STREAM_COLOR, 0, cameraInfo.width, cameraInfo.height, RS2_FORMAT_YUYV, 30, &e);
-  // VERIFY(ok());
-
-  // // Depth image is required to avoid constant restart of RealSense
-  // rs2_config_enable_stream(config, RS2_STREAM_DEPTH, 0, 424, 240, RS2_FORMAT_Z16, 5, &e);
-  // VERIFY(ok());
-
-  // Thread::getCurrentThread()->setPriority(11); // One more than Upper when waiting for an image
-
-  // // Start the pipeline streaming
-  // pipelineProfile = rs2_pipeline_start_with_config(pipeline, config, &e);
-  // VERIFY(ok());
-
-  // Thread::getCurrentThread()->setPriority(0);
-
-  // // Get sensor to apply settings
-  // rs2_device* device = rs2_pipeline_profile_get_device(pipelineProfile, &e);
-  // VERIFY(ok());
-
-  // // Find the sensor that represents the color camera
-  // rs2_sensor_list* sensors = rs2_query_sensors(device, &e);
-  // VERIFY(ok());
-
-  // const int numOfSensors = rs2_get_sensors_count(sensors, &e);
-  // VERIFY(ok());
-
-  // for(int i = 0; i < numOfSensors; ++i)
-  // {
-  //   sensor = rs2_create_sensor(sensors, i, &e);
-  //   VERIFY(ok());
-
-  //   const std::string name = rs2_get_sensor_info(sensor, RS2_CAMERA_INFO_NAME, &e);
-  //   VERIFY(ok());
-
-  //   if(name == "Stereo Module") // First sensor
-  //   {
-  //     rs2_set_option(reinterpret_cast<rs2_options*>(sensor), RS2_OPTION_EMITTER_ENABLED, 0.f, &e);
-  //     VERIFY(ok());
-  //   }
-  //   else if(name == "RGB Camera") // Second sensor
-  //     break;
-
-  //   rs2_delete_sensor(sensor);
-  //   sensor = nullptr;
-  // }
-
-  // ASSERT(numOfSensors && sensor);
-
-  // // Free objects not needed anymore
-  // rs2_delete_sensor_list(sensors);
-  // rs2_delete_device(device);
+  sl::InitParameters init_params;
+  init_params.camera_resolution = sl::RESOLUTION::AUTO;
+  init_params.camera_fps = 30;
+  init_params.depth_mode = sl::DEPTH_MODE::NONE; // color-only pipeline
+  const sl::ERROR_CODE open_err = zed.open(init_params);
+  if(open_err != sl::ERROR_CODE::SUCCESS)
+  {
+    std::cout << "ZED open error: " << open_err << std::endl;
+  }
 #endif
 }
 
 void ZedProvider::stopStream()
 {
 #ifdef TARGET_BOOSTER
-  // // Free image frame
-  // if(yuvFrameData)
-  // {
-  //   rs2_release_frame(frame);
-  //   rs2_release_frame(frames);
-  //   yuvFrameData = nullptr;
-  // }
-
-  // // Free sensor
-  // rs2_delete_sensor(sensor);
-
-  // // Stop the pipeline streaming
-  // rs2_pipeline_stop(pipeline, &e);
-  // rs2_delete_pipeline_profile(pipelineProfile);
+  if(yuvFrameData)
+    yuvFrameData = nullptr;
+  if(zed.isOpened())
+    zed.close();
 #endif
 }
 
 void ZedProvider::waitForFrameData2()
 {
 #ifdef TARGET_BOOSTER
-  // const bool hadFrame = yuvFrameData != nullptr;
-  // if(yuvFrameData)
-  // {
-  //   rs2_release_frame(frame);
-  //   rs2_release_frame(frames);
-  //   yuvFrameData = nullptr;
-  // }
-
-  // applySettings();
-
-  // if(processResolutionRequest())
-  // {
-  //   stopStream();
-  //   setupCamera();
-  // }
-
-  // // This call waits until a new composite_frame is available
-  // // composite_frame holds a set of frames. It is used to prevent frame drops
-  // // The returned object should be released with rs2_release_frame(...)
-  // while(!yuvFrameData)
-  // {
-  //   frames = rs2_pipeline_wait_for_frames(pipeline, yuvFrameData ? minWaitForImage : maxWaitForImage, &e);
-  //   if(ok(false))
-  //   {
-  //     // Returns the number of frames embedded within the composite frame.
-  //     int numOfFrames = rs2_embedded_frames_count(frames, &e);
-  //     VERIFY(ok());
-
-  //     for(int i = numOfFrames - 1; i >= 0 && !yuvFrameData; --i)
-  //     {
-  //       frame = rs2_extract_frame(frames, i, &e);
-  //       VERIFY(ok());
-
-  //       const rs2_stream_profile* streamProfile = rs2_get_frame_stream_profile(frame, &e);
-  //       VERIFY(ok());
-
-  //       rs2_stream stream;
-  //       rs2_format format;
-  //       int index, frameRate, uniqueId;
-  //       rs2_get_stream_profile_data(streamProfile, &stream, &format, &index, &frameRate, &uniqueId, &e);
-  //       VERIFY(ok());
-
-  //       if(stream == RS2_STREAM_COLOR)
-  //       {
-  //         yuvFrameData = (const uint8_t*)(rs2_get_frame_data(frame, &e));
-  //         VERIFY(ok());
-
-  //         frameMetadataTimeOfArrival = rs2_get_frame_metadata(frame, RS2_FRAME_METADATA_TIME_OF_ARRIVAL, &e);
-  //         VERIFY(ok());
-
-  //         if(!hadFrame)
-  //           SystemCall::say("Camera ready");
-  //       }
-  //     }
-  //   }
-  // }
-  cv::Mat line_size_frame = line_size_provider.processFrame(input_frame);
-  yuvFrameData = (const uint8_t*)line_size_frame.data;
+  // Basic frame acquisition placeholder. We keep yuvFrameData null so fallback path is used in update().
+  if(!zed.isOpened())
+    return;
+  if(zed.grab() == sl::ERROR_CODE::SUCCESS)
+  {
+    frameMetadataTimeOfArrival = Time::getCurrentSystemTime();
+    yuvFrameData = nullptr; // not wiring pixel buffer yet
+  }
 #endif
 }
 

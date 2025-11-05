@@ -19,7 +19,7 @@
 
 #if defined TARGET_ROBOT && (defined __arm64__ || defined __aarch64__)
 #define TARGET_BOOSTER
-#include <zed_example/LineSizePixProviderZed.h>
+#include "LineSizePixProviderZed.h"
 #endif
 
 MODULE(ZedProvider,
@@ -94,17 +94,8 @@ class ZedProvider : public ZedProviderBase
   static const Rangei settingLimits[numOfSettings]; /**< The limits for the values of the settings. */
 
 #ifdef TARGET_BOOSTER
-  static const rs2_option options[numOfSettings]; /**< The mapping from settings to RealSense options. */
-  rs2_error* e = nullptr; /**< This pointer will become non-zero if an error occurs. */
-  rs2_context* context; /**< The RealSense context. */
-  rs2_sensor* sensor; /**< The color camera. */
-  rs2_pipeline* pipeline; /**< The pipeline to configure, start, and stop camera streaming. */
-  rs2_config* config; /**< The  config instance, used to specify hardware configuration. */
-  rs2_pipeline_profile* pipelineProfile; /**< The profile of the current stream. */
-  rs2_frame* frames; /**< The frames received. */
-  rs2_frame* frame; /**< The latest frame received. */
   const uint8_t* yuvFrameData = nullptr; /**< The image data in the latest frame received. */
-  rs2_metadata_type frameMetadataTimeOfArrival = 0; /**< The time the last frame arrived (in ms). */
+  unsigned frameMetadataTimeOfArrival = 0; /**< The time the last frame arrived (in ms). */
 #endif
 
   /**
