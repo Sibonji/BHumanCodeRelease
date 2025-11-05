@@ -19,7 +19,7 @@ bool Perception::beforeFrame()
   return (LogDataProvider::isFrameDataComplete()
           && CameraProvider::isFrameDataComplete()
           && OrbbecProvider::isFrameDataComplete()
-          && RealSenseProvider::isFrameDataComplete());
+          && ZedProvider::isFrameDataComplete());
 }
 
 void Perception::beforeModules()
@@ -42,7 +42,7 @@ bool Perception::afterFrame()
     BH_TRACE_MSG("before waitForFrameData");
     CameraProvider::waitForFrameData();
     OrbbecProvider::waitForFrameData();
-    RealSenseProvider::waitForFrameData();
+    ZedProvider::waitForFrameData();
     if(SystemCall::getMode() == SystemCall::physicalRobot)
       Thread::getCurrentThread()->setPriority(0);
   }
