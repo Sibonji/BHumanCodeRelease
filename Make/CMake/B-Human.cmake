@@ -121,14 +121,14 @@ else()
     # zed
     target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::zed::zed)
     # tf2
-    target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::tf2_linmath) #Booster::tf2::LinearMath)
+    target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::tf2_linmath)
     # opencv
+    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::OpenCV::OpenCV)
     target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE ${OpenCV_LIBS})
     target_include_directories(B-Human${TARGET_SUFFIX} PRIVATE ${OpenCV_INCLUDE_DIRS})
     # cuda
-    target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE CUDA::cudart)
-
-    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::OpenCV::OpenCV)
+    target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::toolkit)
+    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE CUDA::cudart)
 
     # cuda
     # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::runtime)

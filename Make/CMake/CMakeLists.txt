@@ -169,7 +169,7 @@ set(CMAKE_STATIC_LINKER_FLAGS_RELEASE "")
 #   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -std=c++17")
 # endif()
 
-find_package(CUDAToolkit REQUIRED)
+# find_package(CUDAToolkit REQUIRED)
 # if(BUILD_BOOSTER)
 #   find_package(CUDAToolkit REQUIRED)
 # endif()
@@ -393,11 +393,6 @@ if(BUILD_BOOSTER)
   set_target_properties(Booster::zed::zed PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/zed/include")
   set_target_properties(Booster::zed::zed PROPERTIES INTERFACE_LINK_LIBRARIES "${BHUMAN_PREFIX}/Util/zed/lib/libsl_zed.so")
   
-  
-  # set_target_properties(tf2_linmath PROPERTIES 
-  #     INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/tf2/LinearMath"
-  # )
-
   set_target_properties(Booster::Booster::SDK PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/BoosterRoboticsSDK/include")
   set_target_properties(Booster::FastCDR::FastCDR PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/BoosterRoboticsSDK/include")
   set_target_properties(Booster::FastRTPS::FastRTPS PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/BoosterRoboticsSDK/include")
@@ -409,41 +404,36 @@ if(BUILD_BOOSTER)
 endif()
 
 # # add cuda
-# if(BUILD_BOOSTER)
-#   # Find CUDA toolkit
-#   find_package(CUDAToolkit REQUIRED)
-  
-#   # Create a collective CUDA toolkit target
-#   add_library(Booster::cuda::toolkit INTERFACE IMPORTED)
-#   set_target_properties(Booster::cuda::toolkit PROPERTIES
-#       INTERFACE_LINK_LIBRARIES 
-#           "CUDA::cudart"
-#           "CUDA::cublas"
-#           "CUDA::cublasLt"
-#           "CUDA::cudnn"
-#           "CUDA::nppc"
-#           "CUDA::nppial"
-#           "CUDA::nppicc")
-  
-#   message(STATUS "CUDA Toolkit found: ${CUDAToolkit_VERSION}")
-#   message(STATUS "CUDA Include: ${CUDAToolkit_INCLUDE_DIRS}")
-#   message(STATUS "CUDA Libraries: ${CUDAToolkit_LIBRARY_DIR}")
-# endif()
+if(BUILD_BOOSTER)
+  # Find CUDA toolkit
+  # find_package(CUDAToolkit REQUIRED)
+  if(EXISTS "${BHUMAN_PREFIX}/Util/cuda/include")
 
-# #add tf2 linearMath
-# if(BUILD_BOOSTER)
-#   # TF2 LinearMath from ROS geometry2
-#   add_library(Booster::tf2::tf2 INTERFACE IMPORTED)
-#   set_target_properties(Booster::tf2::tf2 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/tf2/LinearMath")
+    # Create a collective CUDA toolkit target
+    add_library(Booster::cuda::toolkit INTERFACE IMPORTED)
+    set_target_properties(Booster::cuda::toolkit PROPERTIES 
+        INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/cuda/include")
 
-#   # Create namespace target following your pattern
-#   add_library(tf2::LinearMath INTERFACE IMPORTED)
-#   set_target_properties(tf2::LinearMath PROPERTIES 
-#       INTERFACE_LINK_LIBRARIES "Booster::tf2::tf2"
-#   )
+    # set_target_properties(Booster::cuda::toolkit PROPERTIES
+    #     INTERFACE_LINK_LIBRARIES 
+    #         "CUDA::cudart"
+    #         "CUDA::cublas"
+    #         "CUDA::cublasLt"
+    #         "CUDA::cudnn"
+    #         "CUDA::nppc"
+    #         "CUDA::nppial"
+    #         "CUDA::nppicc")
+    
+    message(STATUS "CUDA configured: ${BHUMAN_PREFIX}/Util/cuda/include")
+    # message(STATUS "CUDA Toolkit found: ${CUDAToolkit_VERSION}")
+    # message(STATUS "CUDA Include: ${CUDAToolkit_INCLUDE_DIRS}")
+    # message(STATUS "CUDA Libraries: ${CUDAToolkit_LIBRARY_DIR}")
+  else()
+    message(WARNING "CUDA not found at ${BHUMAN_PREFIX}/Util/cuda/include")
+  endif()
 
-#   message(STATUS "TF2 LinearMath configured: ${BHUMAN_PREFIX}/Util/tf2")
-# endif()
+endif()
+
 
 #add tf2 linearMath (header-only library)
 if(BUILD_BOOSTER)
@@ -712,14 +702,191 @@ endif()
 #   set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
 #       INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/opencv4")
 #   set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#       INTERFACE_LINK_LIBRARIES "${BHUMAN_PREFIX}/Util/opencv/lib/LinuxArm64/libopencv_world.so")
+#       INTERFACE_LINK_LIBRARIES "${BHUMAN_PREFIX}/Util/opencv4/lib/LinuxArm64/libopencv_world.so")
 # endif()
 # ############ END OPENCV ############
 
 if(BUILD_BOOSTER)
-  set(OpenCV_DIR "/usr/lib/x86_64-linux-gnu/cmake/opencv4")
+  set(OpenCV_DIR "/usr/local/lib/cmake/opencv4")
   find_package(OpenCV REQUIRED)
+  
+  if(OpenCV_FOUND)
+    message(STATUS "OpenCV_FOUND")
+    message(STATUS "OpenCV found via find_package: ${OpenCV_VERSION}")
+    message(STATUS "OpenCV include dirs: ${OpenCV_INCLUDE_DIRS}")
+    message(STATUS "OpenCV libraries: ${OpenCV_LIBS}")
+  else()
+    message(STATUS "PROBLEM: OpenCV_NOT_FOUND")
+  endif()
+
 endif()
+
+# if(BUILD_BOOSTER)
+#   find_package(PkgConfig REQUIRED)
+#   pkg_check_modules(OPENCV REQUIRED opencv4)
+  
+#   add_library(Booster::OpenCV::OpenCV INTERFACE IMPORTED)
+#   set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
+#       INTERFACE_INCLUDE_DIRECTORIES 
+#           "${BHUMAN_PREFIX}/Util/opencv4"
+#           ${OPENCV_INCLUDE_DIRS})
+#   set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
+#       INTERFACE_LINK_LIBRARIES ${OPENCV_LINK_LIBRARIES})
+#   message(STATUS "Using OpenCV via pkg-config: ${OPENCV_VERSION}")
+# endif()
+
+# #test opencv
+# if(BUILD_BOOSTER)
+#   # Use headers from Util/opencv4 and find OpenCV libraries
+#   # Allow user to specify OpenCV library directory manually
+ 
+#   # if(NOT DEFINED OPENCV_LIB_DIR)
+#   #   # Try to find OpenCV via find_package (common locations for ARM64)
+#   #   if(EXISTS "/usr/lib/aarch64-linux-gnu/cmake/opencv4")
+#   #     set(OpenCV_DIR "/usr/lib/aarch64-linux-gnu/cmake/opencv4")
+#   #   elseif(EXISTS "/usr/lib/arm-linux-gnueabihf/cmake/opencv4")
+#   #     set(OpenCV_DIR "/usr/lib/arm-linux-gnueabihf/cmake/opencv4")
+#   #   endif()
+#   # endif()
+  
+#   find_package(OpenCV QUIET)
+  
+#   if(OpenCV_FOUND)
+#     message(STATUS "OpenCV_FOUND")
+
+#     # If OpenCV is found via find_package, use it
+#     add_library(Booster::OpenCV::OpenCV INTERFACE IMPORTED)
+#     set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
+#         INTERFACE_INCLUDE_DIRECTORIES 
+#             "${BHUMAN_PREFIX}/Util/opencv4"
+#             "${OpenCV_INCLUDE_DIRS}")
+#     set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
+#         INTERFACE_LINK_LIBRARIES "${OpenCV_LIBS}")
+#     message(STATUS "OpenCV found via find_package: ${OpenCV_VERSION}")
+#     message(STATUS "OpenCV include dirs: ${OpenCV_INCLUDE_DIRS}")
+#     message(STATUS "OpenCV libraries: ${OpenCV_LIBS}")
+#   else()
+#     # Fallback: Use headers from Util/opencv4
+#     # For cross-compilation, OpenCV libraries should be available on the target system
+#     add_library(Booster::OpenCV::OpenCV INTERFACE IMPORTED)
+#     set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
+#         INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/opencv4")
+    
+#     # Try to find OpenCV libraries using find_library
+#     # Check both with and without NO_DEFAULT_PATH to find libraries in cross-compilation sysroot
+#     set(OPENCV_LIB_DIRS
+#         "${BHUMAN_PREFIX}/Util/Buildchain/T1/lib"
+#         "/usr/lib/aarch64-linux-gnu"
+#         "/usr/lib/arm-linux-gnueabihf"
+#         "/usr/local/lib"
+#         "/usr/lib")
+    
+#     find_library(OPENCV_CORE_LIB
+#         NAMES opencv_core libopencv_core opencv_core4 libopencv_core4
+#         PATHS ${OPENCV_LIB_DIRS})
+    
+#     find_library(OPENCV_IMGPROC_LIB
+#         NAMES opencv_imgproc libopencv_imgproc opencv_imgproc4 libopencv_imgproc4
+#         PATHS ${OPENCV_LIB_DIRS})
+    
+#     find_library(OPENCV_IMGCODECS_LIB
+#         NAMES opencv_imgcodecs libopencv_imgcodecs opencv_imgcodecs4 libopencv_imgcodecs4
+#         PATHS ${OPENCV_LIB_DIRS})
+    
+#     if(OPENCV_CORE_LIB)
+#       # Found at least one library, use what we found
+#       set(OPENCV_LIBS_FOUND ${OPENCV_CORE_LIB})
+#       if(OPENCV_IMGPROC_LIB)
+#         list(APPEND OPENCV_LIBS_FOUND ${OPENCV_IMGPROC_LIB})
+#       endif()
+#       if(OPENCV_IMGCODECS_LIB)
+#         list(APPEND OPENCV_LIBS_FOUND ${OPENCV_IMGCODECS_LIB})
+#       endif()
+      
+#       set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
+#           INTERFACE_LINK_LIBRARIES ${OPENCV_LIBS_FOUND})
+#       message(STATUS "Using OpenCV headers from Util/opencv4")
+#       message(STATUS "Found OpenCV libraries: ${OPENCV_LIBS_FOUND}")
+#     else()
+#       # For cross-compilation: Don't use pkg-config (it returns host system libraries)
+#       # Use essential OpenCV libraries that should be available on target system
+#       # Note: These libraries need to be in the cross-compilation sysroot or target system
+      
+#       # Check if user provided OpenCV library directory
+#       if(DEFINED OPENCV_LIB_DIR AND EXISTS "${OPENCV_LIB_DIR}")
+#           # Use libraries from user-provided directory
+#           set(OPENCV_LIBS_FOUND
+#               "${OPENCV_LIB_DIR}/libopencv_core.so"
+#               "${OPENCV_LIB_DIR}/libopencv_imgproc.so"
+#               "${OPENCV_LIB_DIR}/libopencv_imgcodecs.so"
+#               "${OPENCV_LIB_DIR}/libopencv_videoio.so"
+#               "${OPENCV_LIB_DIR}/libopencv_highgui.so")
+#           set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
+#               INTERFACE_LINK_LIBRARIES ${OPENCV_LIBS_FOUND})
+#           message(STATUS "Using OpenCV headers from Util/opencv4")
+#           message(STATUS "Using OpenCV libraries from: ${OPENCV_LIB_DIR}")
+#         else()
+#           # For cross-compilation: Use minimal essential OpenCV libraries
+#           # These will be resolved at runtime on the target system
+#           # Only link core libraries - dependencies will be resolved automatically
+#           set(OPENCV_LIB_SEARCH_DIRS
+#               "${BHUMAN_PREFIX}/Util/Buildchain/T1/lib"
+#               "/usr/lib/aarch64-linux-gnu"
+#               "/usr/lib/arm-linux-gnueabihf"
+#               "/usr/local/lib/aarch64-linux-gnu"
+#               "/usr/local/lib")
+          
+#           # Only link essential OpenCV libraries (core, imgproc, imgcodecs)
+#           # Other libraries will be linked automatically as dependencies
+#           set(OPENCV_LIB_NAMES
+#               opencv_core
+#               opencv_imgproc
+#               opencv_imgcodecs)
+          
+#           set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
+#               INTERFACE_LINK_LIBRARIES ${OPENCV_LIB_NAMES})
+#           set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
+#               INTERFACE_LINK_DIRECTORIES ${OPENCV_LIB_SEARCH_DIRS})
+          
+#           message(STATUS "Using OpenCV headers from Util/opencv4")
+#           message(STATUS "Linking essential OpenCV libraries: ${OPENCV_LIB_NAMES}")
+#           message(STATUS "Search directories: ${OPENCV_LIB_SEARCH_DIRS}")
+#           message(WARNING "OpenCV libraries not found via find_package.")
+#           message(WARNING "Linking by library names - ensure OpenCV is installed on the target system.")
+#           message(WARNING "Alternatively, specify OPENCV_LIB_DIR when running cmake: -DOPENCV_LIB_DIR=/path/to/opencv/libs")
+#         endif()
+#     endif()
+#   endif()
+# endif()
+
+# add opencv4
+# if(BUILD_BOOSTER)
+#   # find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs)
+#   if(EXISTS "${BHUMAN_PREFIX}/Util/opencv4/include")
+
+#     add_library(Booster::OpenCV::OpenCV INTERFACE IMPORTED)
+#     set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
+#         INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/opencv4/include")
+#     set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
+#         INTERFACE_LINK_LIBRARIES 
+#             opencv_core
+#             opencv_imgproc
+#             opencv_imgcodecs
+#             opencv_videoio
+#             opencv_highgui)
+
+#     # set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
+#     # INTERFACE_LINK_LIBRARIES 
+#     #     "${BHUMAN_PREFIX}/Util/opencv4/lib/LinuxArm64/libopencv_core.so"
+#     #     "${BHUMAN_PREFIX}/Util/opencv4/lib/LinuxArm64/libopencv_imgproc.so"
+#     #     "${BHUMAN_PREFIX}/Util/opencv4/lib/LinuxArm64/libopencv_imgcodecs.so"
+#     #     "${BHUMAN_PREFIX}/Util/opencv4/lib/LinuxArm64/libopencv_highgui.so")
+        
+#     message(STATUS "Using minimal OpenCV components")
+#   else()
+#     message(WARNING "OpenCV not found at ${BHUMAN_PREFIX}/Util/opencv4/include")
+#   endif()
+# endif()
 
 if(BUILD_NAO)
   add_library(Nao::FFTW::FFTW STATIC IMPORTED)

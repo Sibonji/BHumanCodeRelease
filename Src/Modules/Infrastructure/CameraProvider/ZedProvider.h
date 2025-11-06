@@ -21,7 +21,13 @@
  #define TARGET_BOOSTER
  #include <sl/Camera.hpp>
  #endif
- 
+
+ inline Out& operator<<(Out& out, const sl::String& str) {
+  // out.outString(str.c_str());
+  // return out;
+  return out << std::string(str.c_str());
+}
+
  MODULE(ZedProvider,
  {,
    REQUIRES(CameraResolutionRequest),
