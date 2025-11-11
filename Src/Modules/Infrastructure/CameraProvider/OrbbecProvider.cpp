@@ -1,9 +1,9 @@
 /**
  * @file OrbbecProvider.cpp
  *
- * This file implements a module that grabs images from the Orbbec camera sensor.
+ * This file implements a module that grabs images from the Zed sensor.
  *
- * @author Thomas Röfer
+ * @author -
  */
 
 #include "OrbbecProvider.h"
@@ -12,6 +12,7 @@
 #include "Platform/SystemCall.h"
 #include "Platform/Thread.h"
 #include "Platform/Time.h"
+#include <iostream>
 
 MAKE_MODULE(OrbbecProvider);
 
@@ -124,6 +125,10 @@ OrbbecProvider::OrbbecProvider()
   // Initialize applied settings with a value illegal for all settings.
   std::fill(appliedSettings.begin(), appliedSettings.end(), 20000);
 
+#ifdef TARGET_BOOSTER
+  // ZED initialization is performed in startStream()
+#endif
+
   setupCamera();
 }
 
@@ -135,6 +140,16 @@ OrbbecProvider::~OrbbecProvider()
 
 void OrbbecProvider::update(CameraImage& theCameraImage)
 {
+#ifdef TARGET_BOOSTER
+  if(yuvFrameData)
+  {
+    const unsigned timestamp = static_cast<long long>(frameMetadataTimeOfArrival) > static_cast<long long>(Time::getSystemTimeBase())
+                              ? static_cast<unsigned>(frameMetadataTimeOfArrival - Time::getSystemTimeBase()) : 100000;
+    theCameraImage.setReference(cameraInfo.width / 2, cameraInfo.height, const_cast<unsigned char*>(yuvFrameData), std::max(lastImageTimestamp + 1, timestamp));
+    lastImageTimestamp = theCameraImage.timestamp;
+  }
+  else
+#endif
   {
     theCameraImage.setResolution(cameraInfo.width / 2, cameraInfo.height);
     theCameraImage.timestamp = Time::getCurrentSystemTime();
@@ -203,12 +218,16 @@ void OrbbecProvider::applySettings()
   {
     const auto skipCheck = skipIfEnabled.find(setting);
     if(settings[setting] != appliedSettings[setting]
-       && (skipCheck == skipIfEnabled.end() || appliedSettings[skipCheck->second] != 1))
+      && (skipCheck == skipIfEnabled.end() || appliedSettings[skipCheck->second] != 1))
     {
       const int limitedSetting = settingLimits[setting].limit(settings[setting]);
       if(limitedSetting != settings[setting])
         OUTPUT_WARNING(TypeRegistry::getEnumName(setting) << " should be inside [" << settingLimits[setting].min
-                       << ", " << settingLimits[setting].max << "], but is " << settings[setting]);
+                      << ", " << settingLimits[setting].max << "], but is " << settings[setting]);
+#ifdef TARGET_BOOSTER
+      // ZED camera settings would be applied here
+      // Currently placeholder - ZED SDK has different API for camera controls
+#endif
       appliedSettings[setting] = settings[setting];
     }
   }
@@ -235,24 +254,101 @@ void OrbbecProvider::setupCamera()
 
 void OrbbecProvider::startStream()
 {
+#ifdef TARGET_BOOSTER
+  sl::InitParameters init_params;
+  
+  // Set resolution based on cameraInfo
+  if(cameraInfo.width == 424 && cameraInfo.height == 240)
+    init_params.camera_resolution = sl::RESOLUTION::VGA; // ZED doesn't have exact match, using closest
+  else if(cameraInfo.width == 640 && cameraInfo.height == 480)
+    init_params.camera_resolution = sl::RESOLUTION::VGA;
+  else if(cameraInfo.width == 1280 && cameraInfo.height == 720)
+    init_params.camera_resolution = sl::RESOLUTION::HD720;
+  else if(cameraInfo.width == 1920 && cameraInfo.height == 1080)
+    init_params.camera_resolution = sl::RESOLUTION::HD1080;
+  else
+    init_params.camera_resolution = sl::RESOLUTION::AUTO;
+    
+  init_params.camera_fps = 30;
+  init_params.depth_mode = sl::DEPTH_MODE::NONE; // color-only pipeline
+  init_params.sdk_verbose = 1; // Enable verbose mode for debugging
+  
+  const sl::ERROR_CODE open_err = zed.open(init_params);
+  if(open_err != sl::ERROR_CODE::SUCCESS)
+  {
+    std::cout << "ZED open error: " << sl::toString(open_err) << std::endl;
+    OUTPUT_ERROR("OrbbecProvider: Failed to open ZED camera - " << sl::toString(open_err));
+  }
+  else
+  {
+    std::cout << "ZED camera opened successfully" << std::endl;
+  }
+#endif
 }
 
 void OrbbecProvider::stopStream()
 {
+#ifdef TARGET_BOOSTER
+  if(yuvFrameData)
+  {
+    yuvFrameData = nullptr;
+  }
+  if(zed.isOpened())
+  {
+    zed.close();
+  }
+#endif
 }
 
 void OrbbecProvider::waitForFrameData2()
 {
-  Thread::sleep(33);
+#ifdef TARGET_BOOSTER
+  if(!zed.isOpened())
+    return;
+    
+  sl::RuntimeParameters runtime_parameters;
+  runtime_parameters.enable_depth = false; // We only need color
+  
+  if(zed.grab(runtime_parameters) == sl::ERROR_CODE::SUCCESS)
+  {
+    sl::Mat left_image;
+    zed.retrieveImage(left_image, sl::VIEW::LEFT);
+    
+    frameMetadataTimeOfArrival = Time::getCurrentSystemTime();
+    
+    // For now, we'll set yuvFrameData to nullptr since ZED provides BGRA by default
+    // In a real implementation, you'd need to convert to YUYV format
+    yuvFrameData = nullptr;
+    
+    if(!hasFrame)
+    {
+      SystemCall::say("Camera ready");
+      hasFrame = true;
+    }
+  }
+#endif
+}
+
+bool OrbbecProvider::ok([[maybe_unused]] const bool print)
+{
+  // ZED error handling would go here
+  return true;
 }
 
 bool OrbbecProvider::isFrameDataComplete()
 {
-  return true;
+#ifdef TARGET_BOOSTER
+  if(theInstance)
+    return theInstance->yuvFrameData != nullptr;
+  else
+#endif
+    return true;
 }
 
 void OrbbecProvider::waitForFrameData()
 {
+#ifdef TARGET_ROBOT
   if(theInstance)
     theInstance->waitForFrameData2();
+#endif
 }

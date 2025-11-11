@@ -1,24 +1,23 @@
 /**
- * @file ZedProvider.cpp
+ * @file OrbbecProvider.cpp
  *
- * This file implements a module that grabs images from the Zed sensor.
+ * This file implements a module that grabs images from the Orbbec camera sensor.
  *
- * @author -
+ * @author Thomas Röfer
  */
 
-#include "ZedProvider.h"
+#include "OrbbecProvider.h"
 #include "Math/Range.h"
 #include "Platform/BHAssert.h"
 #include "Platform/SystemCall.h"
 #include "Platform/Thread.h"
 #include "Platform/Time.h"
-#include <iostream>
 
-MAKE_MODULE(ZedProvider);
+MAKE_MODULE(OrbbecProvider);
 
-thread_local ZedProvider* ZedProvider::theInstance = nullptr;
+thread_local OrbbecProvider* OrbbecProvider::theInstance = nullptr;
 
-const Rangei ZedProvider::settingLimits[ZedProvider::numOfSettings]
+const Rangei OrbbecProvider::settingLimits[OrbbecProvider::numOfSettings]
 {
   {0, 1},
   {-64, 64},
@@ -37,14 +36,14 @@ const Rangei ZedProvider::settingLimits[ZedProvider::numOfSettings]
   {0, 1}
 };
 
-const std::unordered_map<ZedProvider::Setting, ZedProvider::Setting> ZedProvider::skipIfEnabled =
+const std::unordered_map<OrbbecProvider::Setting, OrbbecProvider::Setting> OrbbecProvider::skipIfEnabled =
 {
-  {ZedProvider::exposure, ZedProvider::autoExposure},
-  {ZedProvider::gain, ZedProvider::autoExposure},
-  {ZedProvider::whiteBalance, ZedProvider::autoWhiteBalance}
+  {OrbbecProvider::exposure, OrbbecProvider::autoExposure},
+  {OrbbecProvider::gain, OrbbecProvider::autoExposure},
+  {OrbbecProvider::whiteBalance, OrbbecProvider::autoWhiteBalance}
 };
 
-void ZedProvider::Settings::read(In& stream)
+void OrbbecProvider::Settings::read(In& stream)
 {
   FOREACH_ENUM(Setting, setting)
     switch(setting)
@@ -71,7 +70,7 @@ void ZedProvider::Settings::read(In& stream)
     }
 }
 
-void ZedProvider::Settings::write(Out& stream) const
+void OrbbecProvider::Settings::write(Out& stream) const
 {
   FOREACH_ENUM(Setting, setting)
     switch(setting)
@@ -94,7 +93,7 @@ void ZedProvider::Settings::write(Out& stream) const
     }
 }
 
-void ZedProvider::Settings::reg()
+void OrbbecProvider::Settings::reg()
 {
   PUBLISH(reg);
   REG_CLASS(Settings);
@@ -115,7 +114,7 @@ void ZedProvider::Settings::reg()
     }
 }
 
-ZedProvider::ZedProvider()
+OrbbecProvider::OrbbecProvider()
   : cameraInfo(CameraInfo::upper)
 {
   theInstance = this;
@@ -125,43 +124,29 @@ ZedProvider::ZedProvider()
   // Initialize applied settings with a value illegal for all settings.
   std::fill(appliedSettings.begin(), appliedSettings.end(), 20000);
 
-#ifdef TARGET_BOOSTER
-  // ZED initialization is performed in startStream()
-#endif
-
   setupCamera();
 }
 
-ZedProvider::~ZedProvider()
+OrbbecProvider::~OrbbecProvider()
 {
   stopStream();
   theInstance = nullptr;
 }
 
-void ZedProvider::update(CameraImage& theCameraImage)
+void OrbbecProvider::update(CameraImage& theCameraImage)
 {
-#ifdef TARGET_BOOSTER
-  if(yuvFrameData)
-  {
-    const unsigned timestamp = static_cast<long long>(frameMetadataTimeOfArrival) > static_cast<long long>(Time::getSystemTimeBase())
-                              ? static_cast<unsigned>(frameMetadataTimeOfArrival - Time::getSystemTimeBase()) : 100000;
-    theCameraImage.setReference(cameraInfo.width / 2, cameraInfo.height, const_cast<unsigned char*>(yuvFrameData), std::max(lastImageTimestamp + 1, timestamp));
-    lastImageTimestamp = theCameraImage.timestamp;
-  }
-  else
-#endif
   {
     theCameraImage.setResolution(cameraInfo.width / 2, cameraInfo.height);
     theCameraImage.timestamp = Time::getCurrentSystemTime();
   }
 }
 
-void ZedProvider::update(JPEGImage& theJPEGImage)
+void OrbbecProvider::update(JPEGImage& theJPEGImage)
 {
   theJPEGImage.fromCameraImage(theCameraImage, jpegQuality);
 }
 
-bool ZedProvider::readCameraIntrinsics()
+bool OrbbecProvider::readCameraIntrinsics()
 {
   InMapFile stream("cameraIntrinsics.cfg");
   bool exist = stream.exists();
@@ -170,7 +155,7 @@ bool ZedProvider::readCameraIntrinsics()
   return exist;
 }
 
-bool ZedProvider::readCameraResolution()
+bool OrbbecProvider::readCameraResolution()
 {
   InMapFile stream("cameraResolution.cfg");
   bool exist = stream.exists();
@@ -179,7 +164,7 @@ bool ZedProvider::readCameraResolution()
   return exist;
 }
 
-bool ZedProvider::processResolutionRequest()
+bool OrbbecProvider::processResolutionRequest()
 {
   const CameraResolutionRequest::Resolutions requestedResolution = theCameraResolutionRequest.resolutions[CameraInfo::upper];
   CameraResolutionRequest::Resolutions& currentResolution = cameraResolutionRequest.resolutions[CameraInfo::upper];
@@ -212,28 +197,24 @@ bool ZedProvider::processResolutionRequest()
     return false;
 }
 
-void ZedProvider::applySettings()
+void OrbbecProvider::applySettings()
 {
   FOREACH_ENUM(Setting, setting)
   {
     const auto skipCheck = skipIfEnabled.find(setting);
     if(settings[setting] != appliedSettings[setting]
-      && (skipCheck == skipIfEnabled.end() || appliedSettings[skipCheck->second] != 1))
+       && (skipCheck == skipIfEnabled.end() || appliedSettings[skipCheck->second] != 1))
     {
       const int limitedSetting = settingLimits[setting].limit(settings[setting]);
       if(limitedSetting != settings[setting])
         OUTPUT_WARNING(TypeRegistry::getEnumName(setting) << " should be inside [" << settingLimits[setting].min
-                      << ", " << settingLimits[setting].max << "], but is " << settings[setting]);
-#ifdef TARGET_BOOSTER
-      // ZED camera settings would be applied here
-      // Currently placeholder - ZED SDK has different API for camera controls
-#endif
+                       << ", " << settingLimits[setting].max << "], but is " << settings[setting]);
       appliedSettings[setting] = settings[setting];
     }
   }
 }
 
-void ZedProvider::setupCamera()
+void OrbbecProvider::setupCamera()
 {
   // set resolution
   cameraResolutionRequest.apply(CameraInfo::upper, cameraInfo);
@@ -252,103 +233,26 @@ void ZedProvider::setupCamera()
   startStream();
 }
 
-void ZedProvider::startStream()
+void OrbbecProvider::startStream()
 {
-#ifdef TARGET_BOOSTER
-  sl::InitParameters init_params;
-  
-  // Set resolution based on cameraInfo
-  if(cameraInfo.width == 424 && cameraInfo.height == 240)
-    init_params.camera_resolution = sl::RESOLUTION::VGA; // ZED doesn't have exact match, using closest
-  else if(cameraInfo.width == 640 && cameraInfo.height == 480)
-    init_params.camera_resolution = sl::RESOLUTION::VGA;
-  else if(cameraInfo.width == 1280 && cameraInfo.height == 720)
-    init_params.camera_resolution = sl::RESOLUTION::HD720;
-  else if(cameraInfo.width == 1920 && cameraInfo.height == 1080)
-    init_params.camera_resolution = sl::RESOLUTION::HD1080;
-  else
-    init_params.camera_resolution = sl::RESOLUTION::AUTO;
-    
-  init_params.camera_fps = 30;
-  init_params.depth_mode = sl::DEPTH_MODE::NONE; // color-only pipeline
-  init_params.sdk_verbose = 1; // Enable verbose mode for debugging
-  
-  const sl::ERROR_CODE open_err = zed.open(init_params);
-  if(open_err != sl::ERROR_CODE::SUCCESS)
-  {
-    std::cout << "ZED open error: " << sl::toString(open_err) << std::endl;
-    OUTPUT_ERROR("ZedProvider: Failed to open ZED camera - " << sl::toString(open_err));
-  }
-  else
-  {
-    std::cout << "ZED camera opened successfully" << std::endl;
-  }
-#endif
 }
 
-void ZedProvider::stopStream()
+void OrbbecProvider::stopStream()
 {
-#ifdef TARGET_BOOSTER
-  if(yuvFrameData)
-  {
-    yuvFrameData = nullptr;
-  }
-  if(zed.isOpened())
-  {
-    zed.close();
-  }
-#endif
 }
 
-void ZedProvider::waitForFrameData2()
+void OrbbecProvider::waitForFrameData2()
 {
-#ifdef TARGET_BOOSTER
-  if(!zed.isOpened())
-    return;
-    
-  sl::RuntimeParameters runtime_parameters;
-  runtime_parameters.enable_depth = false; // We only need color
-  
-  if(zed.grab(runtime_parameters) == sl::ERROR_CODE::SUCCESS)
-  {
-    sl::Mat left_image;
-    zed.retrieveImage(left_image, sl::VIEW::LEFT);
-    
-    frameMetadataTimeOfArrival = Time::getCurrentSystemTime();
-    
-    // For now, we'll set yuvFrameData to nullptr since ZED provides BGRA by default
-    // In a real implementation, you'd need to convert to YUYV format
-    yuvFrameData = nullptr;
-    
-    if(!hasFrame)
-    {
-      SystemCall::say("Camera ready");
-      hasFrame = true;
-    }
-  }
-#endif
+  Thread::sleep(33);
 }
 
-bool ZedProvider::ok([[maybe_unused]] const bool print)
+bool OrbbecProvider::isFrameDataComplete()
 {
-  // ZED error handling would go here
   return true;
 }
 
-bool ZedProvider::isFrameDataComplete()
+void OrbbecProvider::waitForFrameData()
 {
-#ifdef TARGET_BOOSTER
-  if(theInstance)
-    return theInstance->yuvFrameData != nullptr;
-  else
-#endif
-    return true;
-}
-
-void ZedProvider::waitForFrameData()
-{
-#ifdef TARGET_ROBOT
   if(theInstance)
     theInstance->waitForFrameData2();
-#endif
 }
