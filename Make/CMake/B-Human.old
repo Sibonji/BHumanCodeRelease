@@ -21,6 +21,7 @@ if(NOT WINDOWS)
       "${BHUMAN_ROOT_DIR}/Modules/Perception/FieldPerceptors/LinePerceptor.cpp" "${BHUMAN_ROOT_DIR}/Modules/Perception/FieldPerceptors/LinePerceptor.h"
       "${BHUMAN_ROOT_DIR}/Modules/Perception/ImagePreprocessors/ECImageProvider.cpp" "${BHUMAN_ROOT_DIR}/Modules/Perception/ImagePreprocessors/ECImageProvider.h"
       "${BHUMAN_ROOT_DIR}/Modules/Sensing/FallDownStateDetector/FallDownStateProvider.cpp" "${BHUMAN_ROOT_DIR}/Modules/Sensing/FallDownStateDetector/FallDownStateProvider.h"
+      "${BHUMAN_ROOT_DIR}/Modules/Sensing/FallDownStateDetector/BoosterFallDownStateProvider.cpp" "${BHUMAN_ROOT_DIR}/Modules/Sensing/FallDownStateDetector/BoosterFallDownStateProvider.h"
       "${BHUMAN_ROOT_DIR}/Modules/Sensing/InertialDataProvider/InertialDataProvider.cpp" "${BHUMAN_ROOT_DIR}/Modules/Sensing/InertialDataProvider/InertialDataProvider.h"
       "${BHUMAN_ROOT_DIR}/Tools/Modeling/UKFPose2D.cpp" "${BHUMAN_ROOT_DIR}/Tools/Modeling/UKFPose2D.h")
 endif()
@@ -118,30 +119,6 @@ else()
     target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::libjpeg::libjpeg)
     target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::CompiledNN::ONNX)
     target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::realsense2::realsense2)
-    # zed
-    target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::zed::zed)
-    # tf2
-    target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::tf2_linmath)
-    # opencv
-    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::OpenCV::OpenCV)
-    target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE ${OpenCV_LIBS})
-    target_include_directories(B-Human${TARGET_SUFFIX} PRIVATE ${OpenCV_INCLUDE_DIRS})
-    # cuda
-    target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::toolkit)
-    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE CUDA::cudart)
-
-    # cuda
-    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::runtime)
-    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::driver)
-    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::blas)
-    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::blas_lt)
-    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::dnn)
-    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::nppc)
-    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::nppial)
-    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::nppicc)
-
-    # target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::cuda::toolkit)
-
     target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::Booster::SDK)
     target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::FastCDR::FastCDR)
     target_link_libraries(B-Human${TARGET_SUFFIX} PRIVATE Booster::FastRTPS::FastRTPS)

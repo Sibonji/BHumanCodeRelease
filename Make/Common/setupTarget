@@ -25,6 +25,11 @@ case "$_ROBOTTYPE" in
     ;;
 esac
 
+# TARGET_USER=booster
+# TARGET_NAME=Booster
+# TARGET_ARCH=Arm64
+# TARGET_MODEL=K1
+
 unset _BASEPATH
 unset _NAME
 unset _ROBOTTYPE

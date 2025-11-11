@@ -27,22 +27,6 @@ cmake_minimum_required(VERSION 3.17)
 # Export CMAKE_EXPORT_COMPILE_COMMANDS to build the compile_commands.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# # Enable CUDA for Booster builds
-# if(BUILD_BOOSTER)
-#   enable_language(CUDA)
-#   find_package(CUDAToolkit REQUIRED)
-# endif()
-
-# project(B-Human LANGUAGES CXX)
-# if(BUILD_BOOSTER)
-#   # Add CUDA to project languages when building for Booster
-#   set(project_languages CXX CUDA)
-# else()
-#   set(project_languages CXX)
-# endif()
-# project(B-Human LANGUAGES ${project_languages})
-
-
 if(BUILD_NAO)
   set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../CMake/NaoToolchain.cmake")
 elseif(BUILD_BOOSTER)
@@ -53,14 +37,7 @@ if(NOT BUILD_NAO AND CMAKE_HOST_UNIX)
   set(CMAKE_CXX_COMPILER clang++)
 endif()
 
-project(B-Human LANGUAGES CXX) # todo
-
-# if(BUILD_BOOSTER)
-#   project(B-Human LANGUAGES CXX CUDA)
-# else()
-#   project(B-Human LANGUAGES CXX)
-# endif()
-
+project(B-Human LANGUAGES CXX)
 
 if(("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL arm64 OR "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL aarch64) AND NOT ROSETTA)
   set(X86 false)
@@ -161,18 +138,6 @@ set(CMAKE_EXE_LINKER_FLAGS_RELEASE "")
 set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "")
 set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "")
 set(CMAKE_STATIC_LINKER_FLAGS_RELEASE "")
-
-# cuda
-# if(BUILD_BOOSTER)
-#   # Set CUDA architecture for Jetson devices (adjust based on your specific Jetson)
-#   set(CMAKE_CUDA_ARCHITECTURES "72")  # For Jetson Xavier NX/Orin
-#   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O3 -std=c++17")
-# endif()
-
-# find_package(CUDAToolkit REQUIRED)
-# if(BUILD_BOOSTER)
-#   find_package(CUDAToolkit REQUIRED)
-# endif()
 
 if(MSVC)
   add_compile_options(/W3 /GF /GS- /MP /EHsc /permissive- /Zc:preprocessor /Zc:__cplusplus /wd5105 /w34100 /w34189)
@@ -316,83 +281,10 @@ if(BUILD_BOOSTER)
   set_target_properties(Booster::realsense2::realsense2 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/librealsense2/include")
   set_target_properties(Booster::realsense2::realsense2 PROPERTIES IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/librealsense2/lib/LinuxArm64/librealsense2.so.2.55.1")
 
-  # add_library(Booster::zed::zed SHARED IMPORTED)
-  # set_target_properties(Booster::zed::zed PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/zed_example/include")
-  # set_target_properties(Booster::zed::zed PROPERTIES IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/lib...")
-  
   add_library(Booster::Booster::SDK STATIC IMPORTED)
   add_library(Booster::FastCDR::FastCDR SHARED IMPORTED)
   add_library(Booster::FastRTPS::FastRTPS SHARED IMPORTED)
   add_library(Booster::FooNathan::Memory STATIC IMPORTED)
-  # add zed dependencies
-  add_library(Booster::zed::zed INTERFACE IMPORTED)
-  # add_library(Booster::cuda::cuda INTERFACE IMPORTED)
-  # set_target_properties(Booster::cuda::cuda PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/cuda/include")
-  # set_target_properties(Booster::cuda::cuda PROPERTIES INTERFACE_LINK_LIBRARIES "${BHUMAN_PREFIX}/Util/cuda/lib64/libsl_zed.so")
-
-
-  # add cuda
-  # Core CUDA libraries
-  # add_library(Booster::cuda::runtime SHARED IMPORTED)
-  # set_target_properties(Booster::cuda::runtime PROPERTIES
-  #     IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libcudart.so"
-  # )
-
-  # add_library(Booster::cuda::driver SHARED IMPORTED)
-  # set_target_properties(Booster::cuda::driver PROPERTIES
-  #     IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libcuda.so"
-  # )
-
-  # add_library(Booster::cuda::blas SHARED IMPORTED)
-  # set_target_properties(Booster::cuda::blas PROPERTIES
-  #     IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libcublas.so"
-  # )
-
-  # add_library(Booster::cuda::blas_lt SHARED IMPORTED)
-  # set_target_properties(Booster::cuda::blas_lt PROPERTIES
-  #     IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libcublasLt.so"
-  # )
-
-  # # cuDNN
-  # add_library(Booster::cuda::dnn SHARED IMPORTED)
-  # set_target_properties(Booster::cuda::dnn PROPERTIES
-  #     IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libcudnn.so"
-  # )
-
-  # # NPP (NVIDIA Performance Primitives)
-  # add_library(Booster::cuda::nppc SHARED IMPORTED)
-  # set_target_properties(Booster::cuda::nppc PROPERTIES
-  #     IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libnppc.so"
-  # )
-
-  # add_library(Booster::cuda::nppial SHARED IMPORTED)
-  # set_target_properties(Booster::cuda::nppial PROPERTIES
-  #     IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libnppial.so"
-  # )
-
-  # add_library(Booster::cuda::nppicc SHARED IMPORTED)
-  # set_target_properties(Booster::cuda::nppicc PROPERTIES
-  #     IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libnppicc.so"
-  # )
-
-  # # Create collective toolkit target
-  # add_library(Booster::cuda::toolkit INTERFACE IMPORTED)
-  # set_target_properties(Booster::cuda::toolkit PROPERTIES
-  #     INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/cuda/include"
-  #     INTERFACE_LINK_LIBRARIES
-  #         "Booster::cuda::runtime"
-  #         "Booster::cuda::driver"
-  #         "Booster::cuda::blas"
-  #         "Booster::cuda::blas_lt"
-  #         "Booster::cuda::dnn"
-  #         "Booster::cuda::nppc"
-  #         "Booster::cuda::nppial"
-  #         "Booster::cuda::nppicc"
-  # )
-
-  set_target_properties(Booster::zed::zed PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/zed/include")
-  set_target_properties(Booster::zed::zed PROPERTIES INTERFACE_LINK_LIBRARIES "${BHUMAN_PREFIX}/Util/zed/lib/libsl_zed.so")
-  
   set_target_properties(Booster::Booster::SDK PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/BoosterRoboticsSDK/include")
   set_target_properties(Booster::FastCDR::FastCDR PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/BoosterRoboticsSDK/include")
   set_target_properties(Booster::FastRTPS::FastRTPS PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/BoosterRoboticsSDK/include")
@@ -402,169 +294,6 @@ if(BUILD_BOOSTER)
   set_target_properties(Booster::FastRTPS::FastRTPS PROPERTIES IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/BoosterRoboticsSDK/lib/LinuxArm64/libfastrtps.so")
   set_target_properties(Booster::FooNathan::Memory PROPERTIES IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/BoosterRoboticsSDK/lib/LinuxArm64/libfoonathan_memory-0.7.3.a")
 endif()
-
-# # add cuda
-if(BUILD_BOOSTER)
-  # Find CUDA toolkit
-  # find_package(CUDAToolkit REQUIRED)
-  if(EXISTS "${BHUMAN_PREFIX}/Util/cuda/include")
-
-    # Create a collective CUDA toolkit target
-    add_library(Booster::cuda::toolkit INTERFACE IMPORTED)
-    set_target_properties(Booster::cuda::toolkit PROPERTIES 
-        INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/cuda/include")
-
-    # set_target_properties(Booster::cuda::toolkit PROPERTIES
-    #     INTERFACE_LINK_LIBRARIES 
-    #         "CUDA::cudart"
-    #         "CUDA::cublas"
-    #         "CUDA::cublasLt"
-    #         "CUDA::cudnn"
-    #         "CUDA::nppc"
-    #         "CUDA::nppial"
-    #         "CUDA::nppicc")
-    
-    message(STATUS "CUDA configured: ${BHUMAN_PREFIX}/Util/cuda/include")
-    # message(STATUS "CUDA Toolkit found: ${CUDAToolkit_VERSION}")
-    # message(STATUS "CUDA Include: ${CUDAToolkit_INCLUDE_DIRS}")
-    # message(STATUS "CUDA Libraries: ${CUDAToolkit_LIBRARY_DIR}")
-  else()
-    message(WARNING "CUDA not found at ${BHUMAN_PREFIX}/Util/cuda/include")
-  endif()
-
-endif()
-
-
-#add tf2 linearMath (header-only library)
-if(BUILD_BOOSTER)
-  # Check if tf2 headers exist
-  if(EXISTS "${BHUMAN_PREFIX}/Util/tf2/include")
-    # Create interface library for header-only tf2 LinearMath
-    add_library(Booster::tf2_linmath INTERFACE IMPORTED)
-    set_target_properties(Booster::tf2_linmath PROPERTIES 
-        INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/tf2/include")
-    
-    # Create alias following CMake conventions
-    # add_library(tf2::LinearMath ALIAS Booster::tf2_linmath)
-    
-    message(STATUS "TF2 LinearMath (header-only) configured: ${BHUMAN_PREFIX}/Util/tf2/include")
-  else()
-    message(WARNING "TF2 LinearMath not found at ${BHUMAN_PREFIX}/Util/tf2/include")
-  endif()
-endif()
-
-
-# add cuda
-# if(BUILD_BOOSTER)
-#   # Add link directory
-#   link_directories("${BHUMAN_PREFIX}/Util/cuda/lib64")
-  
-#   # Create interface target that knows about the directory
-#   add_library(Booster::cuda::toolkit INTERFACE IMPORTED)
-#   set_target_properties(Booster::cuda::toolkit PROPERTIES
-#       INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/cuda/include"
-#       INTERFACE_LINK_DIRECTORIES "${BHUMAN_PREFIX}/Util/cuda/lib64"
-#       INTERFACE_LINK_LIBRARIES
-#           "cudart"
-#           "cuda"
-#           "cublas"
-#           "cublasLt"
-#           "cudnn"
-#           "nppc"
-#           "nppial"
-#           "nppicc"
-#           "nppidei"
-#           "nppif"
-#           "nppig"
-#           "nppim"
-#           "nppist"
-#           "nppisu"
-#           "nppitc"
-#           "nvjpeg"
-#           "curand"
-#           "cufft"
-#   )
-# endif()
-
-# # add cuda
-# if(BUILD_BOOSTER)
-#   # Core CUDA libraries
-#   add_library(Booster::cuda::runtime SHARED IMPORTED)
-#   set_target_properties(Booster::cuda::runtime PROPERTIES
-#       IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libcudart.so"
-#   )
-
-#   add_library(Booster::cuda::driver SHARED IMPORTED)
-#   set_target_properties(Booster::cuda::driver PROPERTIES
-#       IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libcuda.so"
-#   )
-
-#   add_library(Booster::cuda::blas SHARED IMPORTED)
-#   set_target_properties(Booster::cuda::blas PROPERTIES
-#       IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libcublas.so"
-#   )
-
-#   add_library(Booster::cuda::blas_lt SHARED IMPORTED)
-#   set_target_properties(Booster::cuda::blas_lt PROPERTIES
-#       IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libcublasLt.so"
-#   )
-
-#   # cuDNN
-#   add_library(Booster::cuda::dnn SHARED IMPORTED)
-#   set_target_properties(Booster::cuda::dnn PROPERTIES
-#       IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libcudnn.so"
-#   )
-
-#   # NPP (NVIDIA Performance Primitives)
-#   add_library(Booster::cuda::nppc SHARED IMPORTED)
-#   set_target_properties(Booster::cuda::nppc PROPERTIES
-#       IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libnppc.so"
-#   )
-
-#   add_library(Booster::cuda::nppial SHARED IMPORTED)
-#   set_target_properties(Booster::cuda::nppial PROPERTIES
-#       IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libnppial.so"
-#   )
-
-#   add_library(Booster::cuda::nppicc SHARED IMPORTED)
-#   set_target_properties(Booster::cuda::nppicc PROPERTIES
-#       IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/cuda/lib64/libnppicc.so"
-#   )
-
-#   # Create collective toolkit target
-#   add_library(Booster::cuda::toolkit INTERFACE IMPORTED)
-#   set_target_properties(Booster::cuda::toolkit PROPERTIES
-#       INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/cuda/include"
-#       INTERFACE_LINK_LIBRARIES
-#           "Booster::cuda::runtime"
-#           "Booster::cuda::driver"
-#           "Booster::cuda::blas"
-#           "Booster::cuda::blas_lt"
-#           "Booster::cuda::dnn"
-#           "Booster::cuda::nppc"
-#           "Booster::cuda::nppial"
-#           "Booster::cuda::nppicc"
-#   )
-# endif()
-
-# # Add ZED libs
-# if(BUILD_BOOSTER)
-#   # ... your existing Booster libraries ...
-
-#   # Add ZED SDK for Booster
-#   add_library(Booster::zed::zed INTERFACE IMPORTED)
-#   set_target_properties(Booster::zed::zed PROPERTIES 
-#       INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/zed/include")
-  
-#   # Link against the ZED shared library
-#   set_target_properties(Booster::zed::zed PROPERTIES
-#       INTERFACE_LINK_LIBRARIES "${BHUMAN_PREFIX}/Util/zed/lib/libsl_zed.so")
-
-#   # If you need static linking, use this instead:
-#   # set_target_properties(Booster::zed::zed PROPERTIES
-#   #     INTERFACE_LINK_LIBRARIES "${BHUMAN_PREFIX}/Util/zed/lib/libsl_zed_static.a")
-# endif()
-
 
 if(BUILD_DESKTOP AND LINUX AND NOT MINIMAL_PROJECT)
   find_package(ALSA REQUIRED)
@@ -606,287 +335,6 @@ if(BUILD_DESKTOP)
     set_target_properties(libjpeg::libjpeg PROPERTIES IMPORTED_LOCATION "${BHUMAN_PREFIX}/Util/libjpeg/lib/${PLATFORM}${ARCH}/libjpeg.lib")
   endif()
 endif()
-
-# opencv test
-
-# # cmake_minimum_required(VERSION 3.10)
-# # project(OpenCVDiagnostic)
-
-# message("=== Starting OpenCV Diagnostic ===")
-
-# # Try to find OpenCV
-# find_package(OpenCV QUIET)  # Use QUIET first to avoid immediate failure
-
-# if(OpenCV_FOUND)
-#     message(STATUS "✓ OpenCV found successfully!")
-#     message(STATUS "  Version: ${OpenCV_VERSION}")
-#     message(STATUS "  Include dirs: ${OpenCV_INCLUDE_DIRS}")
-#     message(STATUS "  Libraries: ${OpenCV_LIBS}")
-    
-#     # Test if we can actually use it
-#     try_compile(OPENCV_WORKS
-#         ${CMAKE_BINARY_DIR}/test_compile
-#         SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/test_compile.cpp
-#         LINK_LIBRARIES ${OpenCV_LIBS}
-#         CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${OpenCV_INCLUDE_DIRS}"
-#     )
-    
-#     if(OPENCV_WORKS)
-#         message(STATUS "✓ OpenCV compilation test: PASSED")
-#     else()
-#         message(STATUS "✗ OpenCV compilation test: FAILED")
-#     endif()
-    
-# else()
-#     message(STATUS "✗ OpenCV not found!")
-    
-#     # Show what CMake searched for
-#     message(STATUS "CMake searched in:")
-#     message(STATUS "  - ${OpenCV_DIR}") 
-#     message(STATUS "  - System paths")
-    
-#     # Helpful hints
-#     message(STATUS "Try installing: sudo apt install libopencv-dev")
-#     message(STATUS "Or set OpenCV_DIR: cmake -DOpenCV_DIR=/path/to/opencv/build ..")
-# endif()
-
-# message("=== OpenCV Diagnostic Complete ===")
-
-# ############ START OPENCV ############
-# if(BUILD_DESKTOP)
-#   # Find OpenCV package
-#   find_package(OpenCV QUIET)
-
-#   if(OpenCV_FOUND)
-#     add_library(OpenCV::OpenCV INTERFACE IMPORTED)
-#     set_target_properties(OpenCV::OpenCV PROPERTIES
-#         INTERFACE_INCLUDE_DIRECTORIES "${OpenCV_INCLUDE_DIRS}"
-#         INTERFACE_LINK_LIBRARIES "${OpenCV_LIBS}")
-#     message(STATUS "OpenCV found: ${OpenCV_VERSION}")
-#   else()
-#     # message(WARNING "OpenCV not found!") #todo
-#     # Fallback: Use pre-built OpenCV from Util directory
-#     message(STATUS "Using pre-built OpenCV from Util directory")
-    
-#     # Verify OpenCV directory structure
-#     if(NOT EXISTS "${BHUMAN_PREFIX}/Util/opencv/include")
-#       message(FATAL_ERROR "OpenCV include directory not found: ${BHUMAN_PREFIX}/Util/opencv/include")
-#     endif()
-
-#     add_library(OpenCV::OpenCV INTERFACE IMPORTED)
-#     set_target_properties(OpenCV::OpenCV PROPERTIES
-#         INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/opencv/include")
-    
-#     if(LINUX)
-#       if(ARM)
-#         set_target_properties(OpenCV::OpenCV PROPERTIES
-#             INTERFACE_LINK_LIBRARIES "${BHUMAN_PREFIX}/Util/opencv/lib/LinuxArm64/libopencv_world.so")
-#       else()
-#         set_target_properties(OpenCV::OpenCV PROPERTIES
-#             INTERFACE_LINK_LIBRARIES "${BHUMAN_PREFIX}/Util/opencv/lib/Linux/libopencv_world.so")
-#       endif()
-#     elseif(MACOS)
-#       set_target_properties(OpenCV::OpenCV PROPERTIES
-#           INTERFACE_LINK_LIBRARIES "${BHUMAN_PREFIX}/Util/opencv/lib/macOS/libopencv_world.dylib")
-#     elseif(WINDOWS)
-#       set_target_properties(OpenCV::OpenCV PROPERTIES
-#           INTERFACE_LINK_LIBRARIES "${BHUMAN_PREFIX}/Util/opencv/lib/Windows/opencv_world.lib")
-#     endif()
-#     message(STATUS "Using pre-built OpenCV from Util directory")
-#   endif()
-# endif()
-
-# if(BUILD_BOOSTER)
-#   find_package(OpenCV QUIET)
-#   add_library(Booster::OpenCV::OpenCV INTERFACE IMPORTED)
-#   set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#       INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/opencv4")
-#   set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#       INTERFACE_LINK_LIBRARIES "${BHUMAN_PREFIX}/Util/opencv4/lib/LinuxArm64/libopencv_world.so")
-# endif()
-# ############ END OPENCV ############
-
-if(BUILD_BOOSTER)
-  # set(OpenCV_DIR "/usr/local/lib/cmake/opencv4")
-  find_package(OpenCV REQUIRED)
-  
-  if(OpenCV_FOUND)
-    message(STATUS "OpenCV_FOUND")
-    message(STATUS "OpenCV found via find_package: ${OpenCV_VERSION}")
-    message(STATUS "OpenCV include dirs: ${OpenCV_INCLUDE_DIRS}")
-    message(STATUS "OpenCV libraries: ${OpenCV_LIBS}")
-  else()
-    message(STATUS "PROBLEM: OpenCV_NOT_FOUND")
-  endif()
-
-endif()
-
-# if(BUILD_BOOSTER)
-#   find_package(PkgConfig REQUIRED)
-#   pkg_check_modules(OPENCV REQUIRED opencv4)
-  
-#   add_library(Booster::OpenCV::OpenCV INTERFACE IMPORTED)
-#   set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#       INTERFACE_INCLUDE_DIRECTORIES 
-#           "${BHUMAN_PREFIX}/Util/opencv4"
-#           ${OPENCV_INCLUDE_DIRS})
-#   set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#       INTERFACE_LINK_LIBRARIES ${OPENCV_LINK_LIBRARIES})
-#   message(STATUS "Using OpenCV via pkg-config: ${OPENCV_VERSION}")
-# endif()
-
-# #test opencv
-# if(BUILD_BOOSTER)
-#   # Use headers from Util/opencv4 and find OpenCV libraries
-#   # Allow user to specify OpenCV library directory manually
- 
-#   # if(NOT DEFINED OPENCV_LIB_DIR)
-#   #   # Try to find OpenCV via find_package (common locations for ARM64)
-#   #   if(EXISTS "/usr/lib/aarch64-linux-gnu/cmake/opencv4")
-#   #     set(OpenCV_DIR "/usr/lib/aarch64-linux-gnu/cmake/opencv4")
-#   #   elseif(EXISTS "/usr/lib/arm-linux-gnueabihf/cmake/opencv4")
-#   #     set(OpenCV_DIR "/usr/lib/arm-linux-gnueabihf/cmake/opencv4")
-#   #   endif()
-#   # endif()
-  
-#   find_package(OpenCV QUIET)
-  
-#   if(OpenCV_FOUND)
-#     message(STATUS "OpenCV_FOUND")
-
-#     # If OpenCV is found via find_package, use it
-#     add_library(Booster::OpenCV::OpenCV INTERFACE IMPORTED)
-#     set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#         INTERFACE_INCLUDE_DIRECTORIES 
-#             "${BHUMAN_PREFIX}/Util/opencv4"
-#             "${OpenCV_INCLUDE_DIRS}")
-#     set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#         INTERFACE_LINK_LIBRARIES "${OpenCV_LIBS}")
-#     message(STATUS "OpenCV found via find_package: ${OpenCV_VERSION}")
-#     message(STATUS "OpenCV include dirs: ${OpenCV_INCLUDE_DIRS}")
-#     message(STATUS "OpenCV libraries: ${OpenCV_LIBS}")
-#   else()
-#     # Fallback: Use headers from Util/opencv4
-#     # For cross-compilation, OpenCV libraries should be available on the target system
-#     add_library(Booster::OpenCV::OpenCV INTERFACE IMPORTED)
-#     set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#         INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/opencv4")
-    
-#     # Try to find OpenCV libraries using find_library
-#     # Check both with and without NO_DEFAULT_PATH to find libraries in cross-compilation sysroot
-#     set(OPENCV_LIB_DIRS
-#         "${BHUMAN_PREFIX}/Util/Buildchain/T1/lib"
-#         "/usr/lib/aarch64-linux-gnu"
-#         "/usr/lib/arm-linux-gnueabihf"
-#         "/usr/local/lib"
-#         "/usr/lib")
-    
-#     find_library(OPENCV_CORE_LIB
-#         NAMES opencv_core libopencv_core opencv_core4 libopencv_core4
-#         PATHS ${OPENCV_LIB_DIRS})
-    
-#     find_library(OPENCV_IMGPROC_LIB
-#         NAMES opencv_imgproc libopencv_imgproc opencv_imgproc4 libopencv_imgproc4
-#         PATHS ${OPENCV_LIB_DIRS})
-    
-#     find_library(OPENCV_IMGCODECS_LIB
-#         NAMES opencv_imgcodecs libopencv_imgcodecs opencv_imgcodecs4 libopencv_imgcodecs4
-#         PATHS ${OPENCV_LIB_DIRS})
-    
-#     if(OPENCV_CORE_LIB)
-#       # Found at least one library, use what we found
-#       set(OPENCV_LIBS_FOUND ${OPENCV_CORE_LIB})
-#       if(OPENCV_IMGPROC_LIB)
-#         list(APPEND OPENCV_LIBS_FOUND ${OPENCV_IMGPROC_LIB})
-#       endif()
-#       if(OPENCV_IMGCODECS_LIB)
-#         list(APPEND OPENCV_LIBS_FOUND ${OPENCV_IMGCODECS_LIB})
-#       endif()
-      
-#       set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#           INTERFACE_LINK_LIBRARIES ${OPENCV_LIBS_FOUND})
-#       message(STATUS "Using OpenCV headers from Util/opencv4")
-#       message(STATUS "Found OpenCV libraries: ${OPENCV_LIBS_FOUND}")
-#     else()
-#       # For cross-compilation: Don't use pkg-config (it returns host system libraries)
-#       # Use essential OpenCV libraries that should be available on target system
-#       # Note: These libraries need to be in the cross-compilation sysroot or target system
-      
-#       # Check if user provided OpenCV library directory
-#       if(DEFINED OPENCV_LIB_DIR AND EXISTS "${OPENCV_LIB_DIR}")
-#           # Use libraries from user-provided directory
-#           set(OPENCV_LIBS_FOUND
-#               "${OPENCV_LIB_DIR}/libopencv_core.so"
-#               "${OPENCV_LIB_DIR}/libopencv_imgproc.so"
-#               "${OPENCV_LIB_DIR}/libopencv_imgcodecs.so"
-#               "${OPENCV_LIB_DIR}/libopencv_videoio.so"
-#               "${OPENCV_LIB_DIR}/libopencv_highgui.so")
-#           set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#               INTERFACE_LINK_LIBRARIES ${OPENCV_LIBS_FOUND})
-#           message(STATUS "Using OpenCV headers from Util/opencv4")
-#           message(STATUS "Using OpenCV libraries from: ${OPENCV_LIB_DIR}")
-#         else()
-#           # For cross-compilation: Use minimal essential OpenCV libraries
-#           # These will be resolved at runtime on the target system
-#           # Only link core libraries - dependencies will be resolved automatically
-#           set(OPENCV_LIB_SEARCH_DIRS
-#               "${BHUMAN_PREFIX}/Util/Buildchain/T1/lib"
-#               "/usr/lib/aarch64-linux-gnu"
-#               "/usr/lib/arm-linux-gnueabihf"
-#               "/usr/local/lib/aarch64-linux-gnu"
-#               "/usr/local/lib")
-          
-#           # Only link essential OpenCV libraries (core, imgproc, imgcodecs)
-#           # Other libraries will be linked automatically as dependencies
-#           set(OPENCV_LIB_NAMES
-#               opencv_core
-#               opencv_imgproc
-#               opencv_imgcodecs)
-          
-#           set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#               INTERFACE_LINK_LIBRARIES ${OPENCV_LIB_NAMES})
-#           set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#               INTERFACE_LINK_DIRECTORIES ${OPENCV_LIB_SEARCH_DIRS})
-          
-#           message(STATUS "Using OpenCV headers from Util/opencv4")
-#           message(STATUS "Linking essential OpenCV libraries: ${OPENCV_LIB_NAMES}")
-#           message(STATUS "Search directories: ${OPENCV_LIB_SEARCH_DIRS}")
-#           message(WARNING "OpenCV libraries not found via find_package.")
-#           message(WARNING "Linking by library names - ensure OpenCV is installed on the target system.")
-#           message(WARNING "Alternatively, specify OPENCV_LIB_DIR when running cmake: -DOPENCV_LIB_DIR=/path/to/opencv/libs")
-#         endif()
-#     endif()
-#   endif()
-# endif()
-
-# add opencv4
-# if(BUILD_BOOSTER)
-#   # find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs)
-#   if(EXISTS "${BHUMAN_PREFIX}/Util/opencv4/include")
-
-#     add_library(Booster::OpenCV::OpenCV INTERFACE IMPORTED)
-#     set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#         INTERFACE_INCLUDE_DIRECTORIES "${BHUMAN_PREFIX}/Util/opencv4/include")
-#     set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#         INTERFACE_LINK_LIBRARIES 
-#             opencv_core
-#             opencv_imgproc
-#             opencv_imgcodecs
-#             opencv_videoio
-#             opencv_highgui)
-
-#     # set_target_properties(Booster::OpenCV::OpenCV PROPERTIES
-#     # INTERFACE_LINK_LIBRARIES 
-#     #     "${BHUMAN_PREFIX}/Util/opencv4/lib/LinuxArm64/libopencv_core.so"
-#     #     "${BHUMAN_PREFIX}/Util/opencv4/lib/LinuxArm64/libopencv_imgproc.so"
-#     #     "${BHUMAN_PREFIX}/Util/opencv4/lib/LinuxArm64/libopencv_imgcodecs.so"
-#     #     "${BHUMAN_PREFIX}/Util/opencv4/lib/LinuxArm64/libopencv_highgui.so")
-        
-#     message(STATUS "Using minimal OpenCV components")
-#   else()
-#     message(WARNING "OpenCV not found at ${BHUMAN_PREFIX}/Util/opencv4/include")
-#   endif()
-# endif()
 
 if(BUILD_NAO)
   add_library(Nao::FFTW::FFTW STATIC IMPORTED)
@@ -1106,7 +554,7 @@ if(BUILD_DESKTOP)
 
   include("${SIMROBOT_PREFIX}/Make/CMake/SimRobot.cmake")
   include("${SIMROBOT_PREFIX}/Make/CMake/SimRobotCommon.cmake")
-  include("${SIMROBOT_PREFIX}/Make/CMake/SimRobotCore2.cmake")
+  include("${SIMROBOT_PREFIX}/Make/CMake/SimRobotCore3.cmake")
   include("${SIMROBOT_PREFIX}/Make/CMake/SimRobotCore2D.cmake")
   include("${SIMROBOT_PREFIX}/Make/CMake/SimRobotEditor.cmake")
 
@@ -1122,7 +570,7 @@ if(BUILD_DESKTOP)
 
   set_property(TARGET SimRobot PROPERTY FOLDER Apps)
   if(MACOS)
-    set_property(TARGET SimRobot SimRobotCore2 SimRobotCore2D SimRobotEditor ${SIMROBOT_CONTROLLERS} DeployDialogRunner PROPERTY XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "B-Human Code Release")
+    set_property(TARGET SimRobot SimRobotCore3 SimRobotCore2D SimRobotEditor ${SIMROBOT_CONTROLLERS} DeployDialogRunner PROPERTY XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "B-Human Code Release")
   endif()
 endif()
 
