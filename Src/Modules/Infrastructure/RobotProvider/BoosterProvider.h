@@ -27,7 +27,7 @@
 
 #if defined TARGET_ROBOT && (defined __arm64__ || defined __aarch64__)
 #define TARGET_BOOSTER
-#include <sl/Camera.hpp>
+// #include <sl/Camera.hpp>
 #include <booster/idl/b1/LowCmd.h>
 #include <booster/idl/b1/LowState.h>
 #include <booster/idl/b1/RobotStatusDdsMsg.h>
@@ -77,7 +77,7 @@ class BoosterProvider : public BoosterProviderBase
 #ifndef TARGET_BOOSTER
   thread_local
 #endif
-  sl::Camera zed;
+  // sl::Camera zed;
   static BoosterProvider* theInstance; /**< The only instance of this module. */
   JointSensorData jointSensorData; /**< The joint sensor data received. */
   RawInertialSensorData rawInertialSensorData; /**< The inertial sensor data received. */

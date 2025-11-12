@@ -59,16 +59,16 @@ BoosterProvider::BoosterProvider()
     Thread::sleep(100);
   }
 
-  sl::InitParameters init_parameters;
-  init_parameters.depth_mode = sl::DEPTH_MODE::NONE; // No depth computation required here.
-  //For Virtual ZED-X with Media Server
-  //init_parameters.input.setFromStream("127.0.0.1",34000);
+  // sl::InitParameters init_parameters;
+  // init_parameters.depth_mode = sl::DEPTH_MODE::NONE; // No depth computation required here.
+  // //For Virtual ZED-X with Media Server
+  // //init_parameters.input.setFromStream("127.0.0.1",34000);
 
-  // Open the camera.
-  auto returned_state = zed.open(init_parameters);
-  if (returned_state != sl::ERROR_CODE::SUCCESS) {
-      SystemCall::say("Error while opening zed camera in BoosterProvider, exit program.\n");
-  }
+  // // Open the camera.
+  // auto returned_state = zed.open(init_parameters);
+  // if (returned_state != sl::ERROR_CODE::SUCCESS) {
+  //     SystemCall::say("Error while opening zed camera in BoosterProvider, exit program.\n");
+  // }
 #else
 BoosterProvider::BoosterProvider()
 {
@@ -84,7 +84,7 @@ BoosterProvider::~BoosterProvider()
   robotStatusSubscriber.CloseChannel();
   lowStateSubscriber.CloseChannel();
   lowCmdPublisher.CloseChannel();
-  zed.close();
+  // zed.close();
 #endif
   theInstance = nullptr;
 }
@@ -192,20 +192,23 @@ void BoosterProvider::lowStateHandler2(const booster_interface::msg::LowState& l
   }
 
   // Used to store sensors data.
-  sl::SensorsData sensors_data;
-  sl::ERROR_CODE imu_resp = zed.getSensorsData(sensors_data, sl::TIME_REFERENCE::CURRENT);
-  if (imu_resp == sl::ERROR_CODE::SUCCESS) {
-    rawInertialSensorData.gyro = {sensors_data.imu.pose.getOrientation()[0], sensors_data.imu.pose.getOrientation()[1], sensors_data.imu.pose.getOrientation()[2]};
-    rawInertialSensorData.acc = {sensors_data.imu.linear_acceleration[0], sensors_data.imu.linear_acceleration[1], sensors_data.imu.linear_acceleration[2]};
-    rawInertialSensorData.angle = {sensors_data.imu.angular_velocity[0], sensors_data.imu.angular_velocity[1], sensors_data.imu.angular_velocity[2]};
-  }
-  else
-    SystemCall::say("Error while getting IMU data");
+  // sl::SensorsData sensors_data;
+  // sl::ERROR_CODE imu_resp = zed.getSensorsData(sensors_data, sl::TIME_REFERENCE::CURRENT);
+  // if (imu_resp == sl::ERROR_CODE::SUCCESS) {
+  //   rawInertialSensorData.gyro = {sensors_data.imu.pose.getOrientation()[0], sensors_data.imu.pose.getOrientation()[1], sensors_data.imu.pose.getOrientation()[2]};
+  //   rawInertialSensorData.acc = {sensors_data.imu.linear_acceleration[0], sensors_data.imu.linear_acceleration[1], sensors_data.imu.linear_acceleration[2]};
+  //   rawInertialSensorData.angle = {sensors_data.imu.angular_velocity[0], sensors_data.imu.angular_velocity[1], sensors_data.imu.angular_velocity[2]};
+  // }
+  // else
+  //   SystemCall::say("Error while getting IMU data");
 
 
-  // rawInertialSensorData.gyro = {lowState.imu_state().gyro()[0], lowState.imu_state().gyro()[1], lowState.imu_state().gyro()[2]};
-  // rawInertialSensorData.acc = {lowState.imu_state().acc()[0], lowState.imu_state().acc()[1], lowState.imu_state().acc()[2]};
+  // rawInertialSensorData.gyro =  {lowState.imu_state().gyro()[0], lowState.imu_state().gyro()[1], lowState.imu_state().gyro()[2]};
+  // rawInertialSensorData.acc =   {lowState.imu_state().acc()[0], lowState.imu_state().acc()[1], lowState.imu_state().acc()[2]};
   // rawInertialSensorData.angle = {lowState.imu_state().rpy()[0], lowState.imu_state().rpy()[1], lowState.imu_state().rpy()[2]};
+  rawInertialSensorData.gyro =  {0, 0, 0};
+  rawInertialSensorData.acc =   {0, 0, 0};
+  rawInertialSensorData.angle = {0, 0, 0};
 
   jointSensorData.timestamp = Time::getRealSystemTime();
   frameDataSignal.post();
