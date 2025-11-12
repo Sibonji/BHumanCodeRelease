@@ -79,15 +79,15 @@ void MotionEngine::update(JointRequest& jointRequest)
            (theFrameInfo.time > 110000 &&
             theFrameInfo.getTimeSince(oldestBehaviorTimestamp) > emergencySitDownDelay))) // No new camera images
   {
-    forceSitDown = true;
-    if(!theGyroOffset.isIMUBad)
-    {
-      OUTPUT_ERROR("No data from Cognition to Motion for more than " << ((emergencySitDownDelay + 500) / 1000) << " seconds.");
-      SystemCall::playSound("siren", true);
-      SystemCall::say("No cognition dae ta", true);
-    }
-    else
-      OUTPUT_ERROR("Gyro values have high offsets!");
+    // forceSitDown = true;
+    // if(!theGyroOffset.isIMUBad)
+    // {
+    //   OUTPUT_ERROR("No data from Cognition to Motion for more than " << ((emergencySitDownDelay + 500) / 1000) << " seconds.");
+    //   SystemCall::playSound("siren", true);
+    //   SystemCall::say("No cognition dae ta", true);
+    // }
+    // else
+    //   OUTPUT_ERROR("Gyro values have high offsets!");
   }
   else if(!theGyroOffset.offsetCheckFinished)  // Gyro offsets could not be checked yet
     forceSitDown = true;
