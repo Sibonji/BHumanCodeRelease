@@ -16,10 +16,12 @@
  #include "Representations/Infrastructure/FrameInfo.h"
  #include "Representations/Infrastructure/JPEGImage.h"
  #include "Framework/Module.h"
+ #include <chrono>
  
  #if defined TARGET_ROBOT && (defined __arm64__ || defined __aarch64__)
  #define TARGET_BOOSTER
  #include <sl/Camera.hpp>
+ #include <opencv2/opencv.hpp>
  #endif
 
  inline Out& operator<<(Out& out, const sl::String& str) {
@@ -102,6 +104,7 @@
    Settings appliedSettings; /**< The settings that were already applied. */
    static const std::unordered_map<Setting, Setting> skipIfEnabled; /**< Skip setting an option if another option is currently enabled. */
    static const Rangei settingLimits[numOfSettings]; /**< The limits for the values of the settings. */
+   bool img_test_saved = true;
  
  #ifdef TARGET_BOOSTER
    const uint8_t* yuvFrameData = nullptr; /**< The image data in the latest frame received. */
@@ -149,6 +152,8 @@
  
    /** Read the initial camera resolutions from a configuration file. */
    bool readCameraResolution();
+
+   void logImgToFile(const sl::Mat& zedImage);
  
    /**
     * Check whether the resolution should be changed.
